@@ -1,0 +1,43 @@
+﻿@using BlockUIFileDownloadWeb.Models
+@model CustomerInfoModel
+@{
+    ViewBag.Title = "Home Page";
+}
+<h2>@ViewBag.Message</h2>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#create_pdf_form').submit(function () {
+            blockUIForDownload();
+        });
+    });
+
+    var fileDownloadCheckTimer;
+    function blockUIForDownload() {
+        var token = new Date().getTime(); //use the current timestamp as the token value
+        $('#download_token_value').val(token);
+        $.blockUI();
+        fileDownloadCheckTimer = window.setInterval(function () {
+            var cookieValue = $.cookie('fileDownloadToken');
+            if (cookieValue == token)
+                finishDownload();
+        }, 1000);
+    }
+
+    function finishDownload() {
+        window.clearInterval(fileDownloadCheckTimer);
+        $.cookie('fileDownloadToken', null); //clears this cookie value
+        $.unblockUI();
+    }
+</script>
+
+@using (Html.BeginForm("CreateInfoSheet", "Home", FormMethod.Post,
+    new { @id = "create_pdf_form" }))
+{
+    <fieldset>
+        <legend>Create Customer Info Sheet PDF</legend>
+        <p>Using the submit button below will trigger a PDF file download.</p>
+        @Html.HiddenFor(m => m.DownloadToken, new { @id = "download_token_value"})
+        <input type="submit" value="Create File" />
+    </fieldset>      
+}
